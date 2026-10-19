@@ -23,7 +23,7 @@ try{
  if(!navigator.gpu) throw new Error("Bu tarayıcıda WebGPU yok.");
  const engine=new webllm.MLCEngine();
  engine.setInitProgressCallback(p=>st.textContent=p.text);
- await engine.reload("Qwen2.5-1.5B-Instruct-q4f16_1-MLC");
+ await engine.reload("Qwen2.5-1.5B-Instruct-q4f32_1-MLC");
  st.textContent="VI hazır.";go.disabled=false;
  go.onclick=async()=>{
   const t=q.value.trim();if(!t)return;q.value="";go.disabled=true;
