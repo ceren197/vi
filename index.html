@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="tr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>VI</title>
+<style>
+body{font-family:sans-serif;max-width:700px;margin:auto;padding:12px;background:#111;color:#eee}
+#log{min-height:50vh}.m{margin:8px 0;padding:10px;border-radius:10px;white-space:pre-wrap}
+.u{background:#2a3a5a}.a{background:#2a2a2a}
+textarea{width:100%;box-sizing:border-box;padding:10px;border-radius:8px}
+button{padding:10px 16px;margin-top:6px;border-radius:8px;border:0;background:#6c8cff;color:#fff}
+</style></head><body>
+<h2>VI</h2><div id="st">Başlatılıyor...</div><div id="log"></div>
+<textarea id="q" rows="2" placeholder="VI'ye yaz..."></textarea>
+<button id="go" disabled>Gönder</button>
+<script type="module">
+import * as webllm from "https://esm.run/@mlc-ai/web-llm";
+const SISTEM = "Sen VI'sin, kullanıcının kişisel yapay zekasısın. Türkçe, samimi ve açık konuş. Emin olmadığın bilgiyi uydurma, bilmiyorsan 'bilmiyorum' de.";
+const st=document.getElementById("st"),log=document.getElementById("log"),
+q=document.getElementById("q"),go=document.getElementById("go");
+const msgs=[{role:"system",content:SISTEM}];
+function add(c,t){const d=document.createElement("div");d.className="m "+t;d.textContent=c;log.appendChild(d);return d}
+try{
+ if(!navigator.gpu) throw new Error("Bu tarayıcıda WebGPU yok.");
+ const engine=new webllm.MLCEngine();
+ engine.setInitProgressCallback(p=>st.textContent=p.text);
+ await engine.reload("Qwen2.5-1.5B-Instruct-q4f16_1-MLC");
+ st.textContent="VI hazır.";go.disabled=false;
+ go.onclick=async()=>{
+  const t=q.value.trim();if(!t)return;q.value="";go.disabled=true;
+  add(t,"u");msgs.push({role:"user",content:t});
+  const box=add("...","a");let full="";
+  const s=await engine.chat.completions.create({messages:msgs,stream:true});
+  for await(const c of s){full+=c.choices[0]?.delta?.content||"";box.textContent=full}
+  msgs.push({role:"assistant",content:full});go.disabled=false;
+ };
+}catch(e){st.textContent="Hata: "+e.message}
+</script></body></html>
